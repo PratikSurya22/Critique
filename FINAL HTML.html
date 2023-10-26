@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Cybercrime Rates in the World</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/vega@5.25.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.16.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.22.2"></script>
+    <style>
+        #mapid { height: 600px; }
+        .legend { line-height: 18px; color: #555; position: absolute; right: 10px; bottom: 30px; background: white; padding: 10px; }
+        .legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.7; }
+    </style>
+</head>
+
+<body>
+
+    <h2>Cybercrime Rates in the World</h2>
+    <p>Explore the cybercrime rates in various countries across the globe. The map displays different countries with their respective cybercrime rates indicated by marker colors. The colors are indicative of the severity of cybercrime, with darker shades representing higher rates. The map displays the cybercrime rate for each country and how it has affected the country drastically. The cybercrime rate statistics show that there are 2,200 attacks per day, with a cyberattack happening every 39 seconds on average. These cyberattacks have affected every country economically. The map shows the different rates of cyberattack in each country.  </p>
+
+    <div id="mapid"></div>
+
+    <div id="vis1"></div>
+
+    <div id="vis2"></div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Function to set color based on cybercrime rate
+        function getColor(d) {
+            return d > 60 ? '#800026' :
+                d > 50 ? '#BD0026' :
+                d > 40 ? '#E31A1C' :
+                d > 30 ? '#FC4E2A' :
+                d > 20 ? '#FD8D3C' :
+                d > 10 ? '#FEB24C' :
+                '#FED976';
+        }
+
+        var mymap = L.map('mapid').setView([20, 0], 2);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+        }).addTo(mymap);
+
+        var countries = [
+            { name: "Canada", location: [56.1304, -106.3468], cybercrimeRate: 28, description: "A North American country known for its natural beauty, vast landscapes, and cultural diversity." },
+            { name: "Japan", location: [36.2048, 138.2529], cybercrimeRate: 20, description: "An island country in East Asia known for its technological advancements, rich culture, and unique traditions." },
+            { name: "South Africa", location: [-30.5595, 22.9375], cybercrimeRate: 25, description: "A country at the southernmost tip of Africa known for its diverse wildlife, natural beauty, and cultural diversity." },
+            { name: "America", location: [37.0902, -95.7129], cybercrimeRate: 23, description: "A highly developed country in North America known for its economic and technological advancements." },
+            { name: "Australia", location: [-25.2744, 133.7751], cybercrimeRate: 15, description: "A country and continent surrounded by the Indian and Pacific oceans, known for its diverse landscapes and wildlife." }
+        ];
+
+        // Adding markers with custom colors and information
+        for (var i = 0; i < countries.length; i++) {
+            var country = countries[i];
+            var color = getColor(country.cybercrimeRate);
+            L.circleMarker(country.location, {
+                color: 'white',
+                fillColor: color,
+                fillOpacity: 0.8,
+                radius: 10
+            }).addTo(mymap).bindPopup(`<b>${country.name}</b><br>Cybercrime Rate: ${country.cybercrimeRate}%<br>Description: ${country.description}`).openPopup();
+        }
+
+        // Adding a legend
+        var legend = L.control({ position: 'bottomright' });
+
+        legend.onAdd = function (map) {
+
+            var div = L.DomUtil.create('div', 'legend');
+            var labels = ["0-10", "10-20", "20-30", "30-40", "40-50", "50-60", "60+"];
+            var grades = [10, 20, 30, 40, 50, 60, 70];
+            var colors = ['#FED976', '#FEB24C', '#FD8D3C', '#FC4E2A', '#E31A1C', '#BD0026', '#800026'];
+
+            // Loop through our intervals and generate a label with a colored square for each interval
+            for (var i = 0; i < grades.length; i++) {
+                div.innerHTML +=
+                    '<i style="background:' + colors[i] + '"></i> ' +
+                    labels[i] + '<br>';
+            }
+
+            return div;
+        };
+
+        legend.addTo(mymap);
+
+        const spec1 = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "description": "Cybercrime Rates in the World",
+            "data": {
+                "values": [
+                    {"country": "India", "rate": 45},
+                    {"country": "America", "rate": 23},
+                    {"country": "United Kingdom", "rate": 70},
+                    {"country": "Australia", "rate": 15},
+                    {"country": "Malaysia", "rate": 30},
+                    {"country": "Brazil", "rate": 55},
+                    {"country": "Germany", "rate": 35},
+                    {"country": "Russia", "rate": 65},
+                    {"country": "South Africa", "rate": 25},
+                    {"country": "Japan", "rate": 20},
+                    {"country": "France", "rate": 60},
+                    {"country": "Mexico", "rate": 45},
+                    {"country": "Canada", "rate": 28},
+                    {"country": "Italy", "rate": 50}
+                ]
+            },
+            "transform": [{"calculate": "datum.rate + ' %'", "as": "ratePercentage"}],
+            "selection": {
+                "slider": {
+                    "type": "single",
+                    "fields": ["rate"],
+                    "bind": {"input": "range", "min": 0, "max": 70, "step": 1}
+                },
+                "country_dropdown": {
+                    "type": "single",
+                    "fields": ["country"],
+                    "bind": {
+                        "input": "select",
+                        "options": [
+                            "India",
+                            "America",
+                            "United Kingdom",
+                            "Australia",
+                            "Malaysia",
+                            "Brazil",
+                            "Germany",
+                            "Russia",
+                            "South Africa",
+                            "Japan",
+                            "France",
+                            "Mexico",
+                            "Canada",
+                            "Italy"
+                        ]
+                    }
+                }
+            },
+            "mark": {"type": "bar", "tooltip": true},
+            "encoding": {
+                "x": {"field": "country", "type": "ordinal"},
+                "y": {"field": "rate", "type": "quantitative"},
+                "color": {
+                    "field": "country",
+                    "type": "nominal",
+                    "scale": {
+                        "domain": [
+                            "India",
+                            "America",
+                            "United Kingdom",
+                            "Australia",
+                            "Malaysia",
+                            "Brazil",
+                            "Germany",
+                            "Russia",
+                            "South Africa",
+                            "Japan",
+                            "France",
+                            "Mexico",
+                            "Canada",
+                            "Italy"
+                        ],
+                        "range": [
+                            "#1f77b4",
+                            "#ff7f0e",
+                            "#2ca02c",
+                            "#d62728",
+                            "#9467bd",
+                            "#8c564b",
+                            "#e377c2",
+                            "#7f7f7f",
+                            "#bcbd22",
+                            "#17becf",
+                            "#aec7e8",
+                            "#ffbb78",
+                            "#98df8a",
+                            "#ff9896"
+                        ]
+                    }
+                },
+                "text": {"field": "ratePercentage", "type": "nominal"},
+                "opacity": {
+                    "condition": {"selection": "country_dropdown", "value": 1},
+                    "value": 0.3
+                }
+            },
+            "config": {}
+        };
+        vegaEmbed("#vis1", spec1, {mode: "vega-lite"}).then(console.log).catch(console.warn);
+
+        var yourVlSpec = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "description": "Comparison of cybercrime rate through the years",
+            "data": {
+                "values": [
+                    {"year": 2010, "rate": 45, "country": "India"},
+                    {"year": 2011, "rate": 23, "country": "America"},
+                    {"year": 2012, "rate": 70, "country": "United Kingdom"},
+                    {"year": 2013, "rate": 15, "country": "Australia"},
+                    {"year": 2014, "rate": 30, "country": "Malaysia"},
+                    {"year": 2015, "rate": 55, "country": "Brazil"},
+                    {"year": 2016, "rate": 35, "country": "Germany"},
+                    {"year": 2017, "rate": 65, "country": "Russia"},
+                    {"year": 2018, "rate": 25, "country": "South Africa"},
+                    {"year": 2019, "rate": 20, "country": "Japan"},
+                    {"year": 2020, "rate": 60, "country": "France"},
+                    {"year": 2021, "rate": 45, "country": "Mexico"},
+                    {"year": 2022, "rate": 28, "country": "Canada"},
+                    {"year": 2023, "rate": 50, "country": "Italy"}
+                ]
+            },
+            "mark": {"type": "point", "filled": true, "shape": "circle"},
+            "encoding": {
+                "x": {"field": "year", "type": "ordinal", "title": "Year"},
+                "y": {"field": "rate", "type": "quantitative", "title": "Cybercrime Rate"},
+                "color": {
+                    "field": "country",
+                    "type": "nominal",
+                    "scale": {
+                        "range": [
+                            "#1f77b4",
+                            "#ff7f0e",
+                            "#2ca02c",
+                            "#d62728",
+                            "#9467bd",
+                            "#8c564b",
+                            "#e377c2",
+                            "#7f7f7f",
+                            "#bcbd22",
+                            "#17becf",
+                            "#aec7e8",
+                            "#ffbb78",
+                            "#98df8a"
+                        ]
+                    }
+                }
+            },
+            "config": {}
+        };
+        vegaEmbed('#vis2', yourVlSpec);
+    </script>
+</body>
+
+</html>
